@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+	<head>
+        
+        <style type='text/css'>
+            html,body,#main {height:100%;}
+            body {background:#222;color:#eee;font-family:sans-serif;}
+            #main {display:flex;align-items:center;justify-content:center;}
+            input {background:#444;border:1px black solid;padding:4px;color:#eee;}
+        </style>
+	</head>
+	<body>
+		<div id="main">
+            <form id='form'>
+                <input type='text' name='goto' id='goto' autofocus></input>
+                <input type='submit' id='go' value='go'></input>
+            </form>
+		</div>
+
+		<script>
+            window.onload=function() {
+                document.getElementById('form').onsubmit=function() {
+                    goto = document.getElementById('goto').value;
+                    if (!goto.match(/^[a-zA-Z]+:\/\//)) {
+                        goto = 'http://' + goto;
+                    }
+                    window.location.replace(goto);
+                    return false;
+                }
+            }
+		</script>
+	</body>
+</html>
