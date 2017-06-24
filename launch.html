@@ -2,22 +2,63 @@
 <html>
 	<head>
         
-        <style type='text/css'>
-            html,body,#main {height:100%;}
-            body {background:#222;color:#eee;font-family:sans-serif;}
-            #main {display:flex;align-items:center;justify-content:center;}
-            input {background:#444;border:1px black solid;padding:4px;color:#eee;}
-        </style>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel='stylesheet' href='css/style.css'>
 	</head>
 	<body>
 		<div id="main">
-            <form id='form'>
-                <input type='text' name='goto' id='goto' autofocus></input>
+            <form id='form' class='pure-form'>
+                <input type='text' name='goto' id='goto' autofocus autocomplete='off'></input>
                 <input type='submit' id='go' value='go'></input>
             </form>
-		</div>
+    	</div>
 
-		<script>
+        <script src='js/suncalc/suncalc.js'></script>
+        <script>
+
+            /*
+            *   Get location.
+            *   Get sunrise/sunset times for location.
+            *   Set <body> class based on result.
+            */
+            function sc(lat,lon) {
+                currentTime = new Date();
+                var times = SunCalc.getTimes(currentTime,lat,lon);
+                if (currentTime >= times.sunriseEnd) {
+                    console.log('sun rose at '+times.sunrise.getHours()+':'+times.sunrise.getMinutes());
+                    console.log('sun sets at '+times.sunset.getHours()+':'+times.sunset.getMinutes());
+                    document.body.classList.remove('dark');
+                }
+                else if (currentTime <= times.dusk) {
+                    console.log('sun set at '+times.sunset.getHours()+':'+times.sunset.getMinutes());
+                    console.log('sun rises at '+times.sunrise.getHours()+':'+times.sunrise.getMinutes());
+                    console.log('dusk has begun');
+                    document.body.classList.add('dark');
+                }
+            }
+            function setCSS() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function yes(pos) {
+                            sc(pos.coords.latitude,pos.coords.longitude);
+                        },
+                        function no(err) {
+                            if (err.code) {
+                                $.get('http://ipinfo.io/loc',function(data, status){
+                                    if (status == 'success') {
+                                        latLon = $.trim(data).split(',',2);
+                                        sc(latLon[0],latLon[1]);
+                                    } else {
+                                        console.log(err.code+' / '+status);
+                                    }
+                                });
+                            }
+                        }
+                    );
+                }
+            }
+            setCSS();
+
             window.onload=function() {
                 document.getElementById('form').onsubmit=function() {
                     goto = document.getElementById('goto').value;
@@ -27,7 +68,7 @@
                     window.location.replace(goto);
                     return false;
                 }
-            }
+            } 
 		</script>
 	</body>
 </html>
