@@ -7,57 +7,47 @@
 	</head>
 	<body>
 		<div id="main">
-            <form id='form' class='pure-form'>
-                <input type='text' name='goto' id='goto' autofocus autocomplete='off'></input>
-                <input type='submit' id='go' value='go'></input>
+            <form id='form'>
+                <input type='text' name='goto' id='goto' autofocus autocomplete='off'/>
+                <input type='submit' id='go' value='go'/>
             </form>
     	</div>
 
         <script src='js/suncalc/suncalc.js'></script>
         <script>
-
-            /*
-            *   Get location.
-            *   Get sunrise/sunset times for location.
-            *   Set <body> class based on result.
-            */
-            function sc(lat,lon) {
+            
+            //var sunrise = ["08:00","07:30","06:30","05:15","04:15","03:45","04:00","04:45","05:45","06:30","07:30","08:15"];
+            //var sunset  = ["16:30","17:15","18:15","19:00","19:45","20:30","20:30","19:30","18:30","17:15","16:15","16:00"];
+            
+            sunrise = {"0":"0800","1":"0730","2":"0630","3":"0515","4":"0415","5":"0345","6":"0400","7":"0445","8":"0545","9":"0630","10":"0730","11":"0815"};
+            sunset  = {"0":"1630","1":"1715","2":"1815","3":"1900","4":"1945","5":"2030","6":"2030","7":"1930","8":"1830","9":"1715","10":"1615","11":"1600"};
+            
+            function compareTime(sunrise,sunset) {
                 currentTime = new Date();
-                var times = SunCalc.getTimes(currentTime,lat,lon);
-                if (currentTime >= times.sunriseEnd) {
-                    console.log('sun rose at '+times.sunrise.getHours()+':'+times.sunrise.getMinutes());
-                    console.log('sun sets at '+times.sunset.getHours()+':'+times.sunset.getMinutes());
-                    document.body.classList.remove('dark');
+                sunriseTime = new Date();
+                sunsetTime  = new Date();
+                
+                var sr = sunrise[currentTime.getMonth()];
+                var ss = sunset[currentTime.getMonth()];
+                
+                sunriseTime.setHours(sr.substr(0,2),sr.substr(2,2),0);
+                sunsetTime.setHours(ss.substr(0,2),ss.substr(2,2),0);
+                
+                console.log("currentMonth: "+currentTime.getMonth());
+                console.log("currentTime:  "+currentTime.getTime());
+                console.log("sunrise:      "+sunriseTime.getTime());
+                console.log("sunset:       "+sunsetTime.getTime());
+                
+                if (currentTime.getTime() >= sunriseTime.getTime()) {
+                    console.log("sun has risen ("+currentTime+" => "+sunrise[currentTime.getMonth()]+")");
+                    document.body.classList.remove("dark");
                 }
-                else if (currentTime <= times.dusk) {
-                    console.log('sun set at '+times.sunset.getHours()+':'+times.sunset.getMinutes());
-                    console.log('sun rises at '+times.sunrise.getHours()+':'+times.sunrise.getMinutes());
-                    console.log('dusk has begun');
-                    document.body.classList.add('dark');
-                }
-            }
-            function setCSS() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        function yes(pos) {
-                            sc(pos.coords.latitude,pos.coords.longitude);
-                        },
-                        function no(err) {
-                            if (err.code) {
-                                $.get('http://ipinfo.io/loc',function(data, status){
-                                    if (status == 'success') {
-                                        latLon = $.trim(data).split(',',2);
-                                        sc(latLon[0],latLon[1]);
-                                    } else {
-                                        console.log(err.code+' / '+status);
-                                    }
-                                });
-                            }
-                        }
-                    );
+                else if (currentTime.getTime() >= sunsetTime.getTime()) {
+                    console.log("sun has set ("+currentTime+" <= "+sunset[currentTime.getMonth()]+")");
+                    document.body.classList.add("dark");
                 }
             }
-            setCSS();
+            compareTime(sunrise,sunset);
 
             window.onload=function() {
                 document.getElementById('form').onsubmit=function() {
